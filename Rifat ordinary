@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rifat Car Racing</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:#111;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+  overflow:hidden;
+}
+
+h1{
+  margin:8px 0;
+  font-size:25px;
+}
+
+#info{
+  display:flex;
+  justify-content:center;
+  gap:30px;
+  font-size:18px;
+  margin-bottom:8px;
+}
+
+#game{
+  width:330px;
+  height:560px;
+  margin:auto;
+  position:relative;
+  overflow:hidden;
+  background:#333;
+  border:4px solid white;
+}
+
+/* Road sides */
+#game:before,
+#game:after{
+  content:"";
+  position:absolute;
+  top:0;
+  width:8px;
+  height:100%;
+  background:#0b0;
+}
+
+#game:before{
+  left:0;
+}
+
+#game:after{
+  right:0;
+}
+
+/* Road lines */
+.line{
+  position:absolute;
+  width:8px;
+  height:80px;
+  background:white;
+  left:161px;
+}
+
+/* Player car */
+.car{
+  position:absolute;
+  width:52px;
+  height:90px;
+  background:red;
+  border-radius:12px;
+  bottom:20px;
+  left:139px;
+  box-shadow:0 0 10px red;
+}
+
+/* Windows */
+.car:before{
+  content:"";
+  position:absolute;
+  width:34px;
+  height:25px;
+  background:#111;
+  left:9px;
+  top:10px;
+  border-radius:6px;
+}
+
+/* Enemy */
+.enemy{
+  position:absolute;
+  width:52px;
+  height:90px;
+  background:yellow;
+  border-radius:12px;
+  top:-100px;
+}
+
+/* Start */
+#start{
+  padding:14px 35px;
+  font-size:20px;
+  border:0;
+  border-radius:12px;
+  background:#00c853;
+  color:white;
+  font-weight:bold;
+}
+
+/* Controls */
+.controls{
+  margin-top:10px;
+}
+
+.controls button{
+  font-size:28px;
+  padding:10px 35px;
+  margin:4px;
+  border:0;
+  border-radius:12px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏎️ RIFAT CAR RACING</h1>
+
+<div id="info">
+  <div>Score: <span id="score">0</span></div>
+  <div>Level: <span id="level">1</span></div>
+</div>
+
+<button id="start">START GAME</button>
+
+<div id="game">
+
+  <div class="line" style="top:-100px"></div>
+  <div class="line" style="top:100px"></div>
+  <div class="line" style="top:300px"></div>
+  <div class="line" style="top:500px"></div>
+
+  <div id="car" class="car"></div>
+  <div id="enemy" class="enemy"></div>
+
+</div>
+
+<div class="controls">
+  <button id="left">⬅️</button>
+  <button id="right">➡️</button>
+</div>
+
+<script>
+
+const car = document.getElementById("car");
+const enemy = document.getElementById("enemy");
+const game = document.getElementById("game");
+
+const scoreText = document.getElementById("score");
+const levelText = document.getElementById("level");
+const startBtn = document.getElementById("start");
+
+const lines = document.querySelectorAll(".line");
+
+let carX = 139;
+let enemyX;
+let enemyY;
+
+let score = 0;
+let level = 1;
+let speed = 5;
+
+let running = false;
+
+function startGame(){
+
+  score = 0;
+  level = 1;
+  speed = 5;
+
+  carX = 139;
+  car.style.left = carX + "px";
+
+  enemyY = -100;
+  enemyX = Math.floor(Math.random() * 270);
+
+  scoreText.innerText = score;
+  levelText.innerText = level;
+
+  running = true;
+
+  startBtn.style.display = "none";
+
+  gameLoop();
+}
+
+function moveLeft(){
+
+  if(!running) return;
+
+  if(carX > 15){
+    carX -= 25;
+    car.style.left = carX + "px";
+  }
+}
+
+function moveRight(){
+
+  if(!running) return;
+
+  if(carX < 263){
+    carX += 25;
+    car.style.left = carX + "px";
+  }
+}
+
+document.getElementById("left").addEventListener("click",moveLeft);
+document.getElementById("right").addEventListener("click",moveRight);
+
+document.addEventListener("keydown",function(e){
+
+  if(e.key === "ArrowLeft"){
+    moveLeft();
+  }
+
+  if(e.key === "ArrowRight"){
+    moveRight();
+  }
+
+});
+
+function collision(){
+
+  return (
+    enemyY + 90 > 450 &&
+    enemyY < 550 &&
+    enemyX < carX + 52 &&
+    enemyX + 52 > carX
+  );
+
+}
+
+function gameLoop(){
+
+  if(!running) return;
+
+  enemyY += speed;
+
+  enemy.style.top = enemyY + "px";
+  enemy.style.left = enemyX + "px";
+
+  /* Road animation */
+
+  lines.forEach(line => {
+
+    let top = parseInt(line.style.top);
+
+    top += speed;
+
+    if(top > 560){
+      top = -100;
+    }
+
+    line.style.top = top + "px";
+
+  });
+
+  /* Collision */
+
+  if(collision()){
+
+    running = false;
+
+    alert(
+      "💥 GAME OVER!\n\n" +
+      "🏆 Score: " + score
+    );
+
+    startBtn.innerText = "PLAY AGAIN";
+    startBtn.style.display = "inline-block";
+
+    return;
+  }
+
+  /* Enemy passed */
+
+  if(enemyY > 560){
+
+    enemyY = -100;
+
+    enemyX = Math.floor(Math.random() * 270);
+
+    score++;
+
+    scoreText.innerText = score;
+
+    /* Level up */
+
+    if(score % 10 === 0){
+
+      level++;
+
+      speed += 1;
+
+      levelText.innerText = level;
+
+    }
+
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+startBtn.addEventListener("click",startGame);
+
+</script>
+
+</body>
+</html>
